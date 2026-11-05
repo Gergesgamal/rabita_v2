@@ -1,0 +1,85 @@
+## git
+73
+## declared routes
+70
+## stub markers
+141
+## backend lib.rs
+pub mod auth;
+pub mod middleware;
+pub mod routes;
+pub mod state;
+pub mod config;
+pub mod db;
+pub mod error;
+## frontend main.rs modules
+9:mod app;
+10:mod components;
+11:mod error;
+12:mod i18n;
+13:mod pages;
+14:mod server;
+15:mod utils;
+## backend check
+0
+## frontend check
+0
+## frontend Cargo.toml
+[package]
+name = "rabita-frontend"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[package.metadata.leptos]
+output-name = "rabita_frontend"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/main.css"
+assets-dir = "public"
+site-addr = "127.0.0.1:3001"
+reload-port = 3001
+browserquery = "defaults"
+watch = false
+env = "DEV"
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
+
+[dependencies]
+leptos = { version = "0.6" }
+leptos_router = { version = "0.6" }
+leptos_meta = { version = "0.6" }
+leptos_axum = { version = "0.6", optional = true }
+axum = { version = "0.7", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["full"] }
+http = "1"
+uuid = { version = "1", features = ["serde", "v4"] }
+thiserror = "1"
+anyhow = "1"
+tracing = "0.1"
+hex = "0.4"
+sha2 = "0.10"
+rust-i18n = "2"
+chrono-tz = "0.8"
+reqwest = { version = "0.11", features = ["json"] }
+
+
+[features]
+default = ["ssr"]
+ssr = ["leptos/ssr", "dep:leptos_axum", "dep:axum"]
+hydrate = ["leptos/hydrate", "dep:console_error_panic_hook", "dep:wasm-bindgen"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+tracing = "0.1"
+tracing-subscriber = "0.3"

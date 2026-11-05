@@ -1,0 +1,25 @@
+error[E0505]: cannot move out of `req` because it is borrowed
+  --> backend/src/orders/routes.rs:73:9
+   |
+37 |     Json(req): Json<CreateOrderRequest>,
+   |          --- binding `req` declared here
+...
+66 |     let order = OrderManager::create_order(
+   |                 -------------------------- borrow later used by call
+...
+69 |         &req.email,
+   |         ---------- borrow of `req.email` occurs here
+--
+error[E0382]: use of moved value: `summary`
+  --> backend/src/orders/routes.rs:91:24
+   |
+53 |     let summary = CheckoutManager::calculate_checkout(
+   |         ------- move occurs because `summary` has type `checkout::models::CheckoutSummary`, which does not implement the `Copy` trait
+...
+75 |         summary,
+   |         ------- value moved here
+...
+91 |             total_egp: summary.total_egp,
+   |                        ^^^^^^^^^^^^^^^^^ value used here after move
+--
+error: could not compile `backend` (lib) due to 2 previous errors; 59 warnings emitted

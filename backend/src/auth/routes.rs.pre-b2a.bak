@@ -1,0 +1,15 @@
+use axum::{routing::post, Router};
+
+pub fn router() -> Router {
+    Router::new()
+        .route("/login", post(login))
+        .route("/logout", post(logout))
+}
+
+async fn login() -> &'static str {
+    "login"
+}
+
+async fn logout() -> &'static str {
+    "logout"
+}

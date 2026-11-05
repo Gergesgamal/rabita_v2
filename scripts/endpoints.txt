@@ -1,0 +1,16 @@
+# kind       method  path                                   body                                 allowed codes
+public       GET     /health                                 -                                    200
+public       GET     /ready                                  -                                    200 503
+protected    GET     /metrics                                -                                    401 403 404
+public       GET     /auth/login                             -                                    200 404
+public       POST    /auth/login                             {"user_code":"x","password":"x","username":"x","email":"x"}  400 401 403 404 422
+public       POST    /auth/login                             {"username":"admin'--"}              400 401 403 404 422
+protected    GET     /api/v1/stores/demo/shipping-rules      -                                    401 403 404
+protected    GET     /api/v1/stores/demo/shipping-policies   -                                    401 403 404
+protected    GET     /editor                                 -                                    302 401 403 404
+public       GET     /jobs                                   -                                    200 404
+public       GET     /account/signup                         -                                    200 404
+public       GET     /orders/demo-order?token=invalid        -                                    401 403 404
+public       GET     /blog/demo-post                         -                                    200 404
+public       GET     /p/demo-page                            -                                    200 404
+protected    POST    /webhooks/demo                          {}                                   401 403 404 405

@@ -1,0 +1,5 @@
+pub mod routes;
+
+pub struct AuthContext {
+    pub user_id: String,
+}

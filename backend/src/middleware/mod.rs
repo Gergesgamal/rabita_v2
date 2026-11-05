@@ -1,8 +1,6 @@
-// backend/src/middleware/mod.rs
+pub mod auth_extractor;
 
-//! Request/response middleware (tracing, auth, CSRF, etc.).
-//! Placeholder for Wave 3 authorization middleware.
-
-pub mod auth;
-
-// Additional middleware modules will be added in future waves.
+/// Per-request context. `trace_id` is filled by the tracing layer once it is wired up.
+pub struct RequestContext {
+    pub trace_id: String,
+}

@@ -1,1 +1,8 @@
 /target
+**/target
+.env
+*.log
+.sqlx/
+!/.sqlx/
+/usage
+/references

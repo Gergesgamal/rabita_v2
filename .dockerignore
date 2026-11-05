@@ -1,0 +1,12 @@
+/target
+/README
+/**/README.md
+.env.examle
+/references
+/usage
+/scripts
+/.git
+/.github
+DEPLOYMENT.MD
+DEVELOPMENT.MD
+

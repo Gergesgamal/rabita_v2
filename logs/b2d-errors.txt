@@ -1,0 +1,126 @@
+error[E0425]: cannot find type `CheckoutSummary` in this scope
+  --> backend/src/orders/manager.rs:28:27
+   |
+28 |         checkout_summary: CheckoutSummary,
+   |                           ^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct through its public re-export
+   |
+ 1 + use crate::checkout::CheckoutSummary;
+   |
+
+error[E0433]: cannot find type `ErrorCode` in this scope
+  --> backend/src/shipping/routes.rs:61:34
+   |
+61 |     .ok_or_else(|| AppError::new(ErrorCode::NotFound, "Store not found"))?;
+   |                                  ^^^^^^^^^ use of undeclared type `ErrorCode`
+   |
+help: consider importing this enum
+   |
+ 1 + use crate::error::ErrorCode;
+   |
+
+--
+error[E0063]: missing field `consumer_id` in initializer of `SessionClaim`
+  --> backend/src/authorization/context.rs:45:12
+   |
+45 |         Ok(SessionClaim {
+   |            ^^^^^^^^^^^^ missing `consumer_id`
+
+error: this function depends on never type fallback being `()`
+  --> backend/src/cart/manager.rs:51:5
+   |
+51 | /     pub async fn add_to_cart(
+52 | |         cache: &mut redis::aio::ConnectionManager,
+53 | |         store_id: Uuid,
+54 | |         consumer_id: &str,
+55 | |         req: AddToCartRequest,
+56 | |     ) -> Result<Cart, AppError> {
+   | |_______________________________^
+   |
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:106:5
+    |
+106 | /     pub async fn remove_from_cart(
+107 | |         cache: &mut redis::aio::ConnectionManager,
+108 | |         store_id: Uuid,
+109 | |         consumer_id: &str,
+110 | |         req: RemoveFromCartRequest,
+111 | |     ) -> Result<Cart, AppError> {
+    | |_______________________________^
+    |
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:139:5
+    |
+139 | /     pub async fn merge_guest_cart(
+140 | |         cache: &mut redis::aio::ConnectionManager,
+141 | |         store_id: Uuid,
+142 | |         guest_session_id: &str,
+143 | |         consumer_id: &str,
+144 | |     ) -> Result<Cart, AppError> {
+    | |_______________________________^
+    |
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:185:5
+    |
+185 | /     pub async fn clear_cart(
+186 | |         cache: &mut redis::aio::ConnectionManager,
+187 | |         store_id: Uuid,
+188 | |         consumer_id: &str,
+189 | |     ) -> Result<(), AppError> {
+    | |_____________________________^
+    |
+    = help: specify the types explicitly
+--
+error[E0277]: the trait bound `shipping::models::CreateShippingRuleRequest: serde::Serialize` is not satisfied
+   --> backend/src/shipping/manager.rs:78:13
+    |
+ 78 |             serde_json::json!(&req),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             unsatisfied trait bound
+    |             required by a bound introduced by this call
+    |
+help: the trait `Serialize` is not implemented for `shipping::models::CreateShippingRuleRequest`
+   --> backend/src/shipping/models.rs:39:1
+--
+error[E0599]: `std::string::String` is not an iterator
+  --> backend/src/stores/manager.rs:22:10
+   |
+21 |           let normalized_slug = req.slug.to_lowercase().nfc().collect::<String>()
+   |  _______________________________-
+22 | |         .collect::<String>();
+   | |         -^^^^^^^ `std::string::String` is not an iterator
+   | |_________|
+   |
+   |
+   = note: the following trait bounds were not satisfied:
+--
+error[E0308]: mismatched types
+  --> backend/src/support/routes.rs:29:59
+   |
+29 |     let ticket = SupportManager::create_ticket(&state.db, consumer_id, Some(store_id), req).await?;
+   |                  -----------------------------            ^^^^^^^^^^^ expected `Uuid`, found `Option<String>`
+   |                  |
+   |                  arguments to this function are incorrect
+   |
+   = note: expected struct `Uuid`
+                found enum `std::option::Option<std::string::String>`
+note: associated function defined here
+--
+error[E0308]: mismatched types
+   --> backend/src/support/routes.rs:55:78
+    |
+ 55 |     let tickets = SupportManager::list_consumer_tickets(&state.db, store_id, consumer_id).await?;
+    |                   -------------------------------------                      ^^^^^^^^^^^ expected `Uuid`, found `Option<String>`
+    |                   |
+    |                   arguments to this function are incorrect
+    |
+    = note: expected struct `Uuid`
+                 found enum `std::option::Option<std::string::String>`
+note: associated function defined here
+--
+error: could not compile `backend` (lib) due to 15 previous errors; 59 warnings emitted

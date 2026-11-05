@@ -1,0 +1,276 @@
+use crate::error::{AppError, ErrorCode};
+use crate::audit::AuditLogger;
+use uuid::Uuid;
+use sqlx::PgPool;
+use chrono::Utc;
+
+use super::models::*;
+
+pub struct SupportManager;
+
+impl SupportManager {
+    const DEFAULT_LIFETIME_SECONDS: i32 = 14 * 24 * 60 * 60; // 14 days per D-095
+    const REOPEN_WINDOW_SECONDS: i32 = 7 * 24 * 60 * 60;     // 7 days per D-094
+    const ATTACHMENT_TTL_SECONDS: i32 = 3 * 24 * 60 * 60;    // 3 days per D-094
+
+    /// Create support ticket per D-094, D-095
+    pub async fn create_ticket(
+        db: &PgPool,
+        consumer_id: Uuid,
+        store_id: Option<Uuid>,
+        req: CreateTicketRequest,
+    ) -> Result<Ticket, AppError> {
+        // Rate limit: 1 ticket per hour per consumer
+        let recent: Option<(Uuid,)> = sqlx::query_as(
+            "SELECT id FROM app.ticket WHERE consumer_id = $1 AND created_at > now() - interval '1 hour'",
+        )
+        .bind(&consumer_id)
+        .fetch_optional(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        if recent.is_some() {
+            return Err(AppError::new(
+                ErrorCode::RateLimited,
+                "Only one ticket per hour allowed",
+            ));
+        }
+
+        let id = Uuid::new_v4();
+        let now = Utc::now();
+
+        sqlx::query(
+            r#"
+            INSERT INTO app.ticket (id, order_id, store_id, consumer_id, subject, state, lifetime_seconds, inactivity_seconds, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, 'pending_support', $6, $6, $7, $7)
+            "#,
+        )
+        .bind(&id)
+        .bind(&req.order_id)
+        .bind(&store_id)
+        .bind(&consumer_id)
+        .bind(&req.subject)
+        .bind(Self::DEFAULT_LIFETIME_SECONDS)
+        .bind(Self::DEFAULT_LIFETIME_SECONDS)
+        .bind(&now)
+        .execute(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        // Add initial reply
+        let reply_id = Uuid::new_v4();
+        sqlx::query(
+            "INSERT INTO app.ticket_reply (id, ticket_id, author_id, content, is_consumer, created_at) VALUES ($1, $2, $3, $4, true, $5)",
+        )
+        .bind(&reply_id)
+        .bind(&id)
+        .bind(&consumer_id)
+        .bind(&req.content)
+        .bind(&now)
+        .execute(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        AuditLogger::log_action(
+            db,
+            consumer_id,
+            "ticket.create",
+            Some(id),
+            serde_json::json!(&req),
+            None,
+        )
+        .await?;
+
+        Self::get_ticket(db, id).await
+    }
+
+    /// Reply to ticket (transitions state automatically)
+    pub async fn reply_to_ticket(
+        db: &PgPool,
+        ticket_id: Uuid,
+        actor_id: Uuid,
+        is_consumer: bool,
+        req: ReplyToTicketRequest,
+    ) -> Result<TicketReply, AppError> {
+        let mut tx = db.begin().await.map_err(|e| AppError::database_error(&e))?;
+
+        // Get ticket current state
+        let ticket: (String, Uuid) = sqlx::query_as(
+            "SELECT state, consumer_id FROM app.ticket WHERE id = $1",
+        )
+        .bind(&ticket_id)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        // Consumers may reply only to their own tickets. Foreign and missing tickets both return 404.
+        if is_consumer && ticket.1 != actor_id {
+            return Err(AppError::NotFound("Ticket not found".to_string()));
+        }
+
+        let new_state = if is_consumer {
+            // Consumer reply: pending_support → pending_user transition
+            if ticket.0 == "pending_user" || ticket.0 == "pending_support" {
+                "pending_user"
+            } else {
+                &ticket.0
+            }
+        } else {
+            // Support reply: pending_support → pending_user transition
+            if ticket.0 == "pending_support" || ticket.0 == "pending_user" {
+                "pending_support"
+            } else {
+                &ticket.0
+            }
+        };
+
+        let id = Uuid::new_v4();
+        let now = Utc::now();
+
+        sqlx::query(
+            "INSERT INTO app.ticket_reply (id, ticket_id, author_id, content, is_consumer, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+        )
+        .bind(&id)
+        .bind(&ticket_id)
+        .bind(&actor_id)
+        .bind(&req.content)
+        .bind(is_consumer)
+        .bind(&now)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        // Update ticket state and reset inactivity window
+        sqlx::query(
+            "UPDATE app.ticket SET state = $1, inactivity_seconds = lifetime_seconds, updated_at = $2 WHERE id = $3",
+        )
+        .bind(new_state)
+        .bind(&now)
+        .bind(&ticket_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        // Update last_viewed for actor
+        sqlx::query(
+            "INSERT INTO app.ticket_last_viewed (id, ticket_id, actor_id, last_viewed_at) VALUES ($1, $2, $3, $4) ON CONFLICT (ticket_id, actor_id) DO UPDATE SET last_viewed_at = $4",
+        )
+        .bind(Uuid::new_v4())
+        .bind(&ticket_id)
+        .bind(&actor_id)
+        .bind(&now)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        tx.commit().await.map_err(|e| AppError::database_error(&e))?;
+
+        Ok(TicketReply {
+            id,
+            ticket_id,
+            author_id: actor_id,
+            content: req.content,
+            is_consumer,
+            created_at: now,
+        })
+    }
+
+    /// Get ticket
+    pub async fn get_ticket(db: &PgPool, ticket_id: Uuid) -> Result<Ticket, AppError> {
+        sqlx::query_as::<_, Ticket>(
+            "SELECT * FROM app.ticket WHERE id = $1",
+        )
+        .bind(&ticket_id)
+        .fetch_optional(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?
+        .ok_or_else(|| AppError::new(ErrorCode::NotFound, "Ticket not found"))
+    }
+
+    /// List tickets for consumer (storefront scope)
+    pub async fn list_consumer_tickets(
+        db: &PgPool,
+        store_id: Uuid,
+        consumer_id: Uuid,
+    ) -> Result<Vec<Ticket>, AppError> {
+        sqlx::query_as::<_, Ticket>(
+            "SELECT * FROM app.ticket WHERE store_id = $1 AND consumer_id = $2 ORDER BY created_at DESC LIMIT 50",
+        )
+        .bind(&store_id)
+        .bind(&consumer_id)
+        .fetch_all(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))
+    }
+
+    /// List tickets for merchant (all store tickets)
+    pub async fn list_merchant_tickets(
+        db: &PgPool,
+        store_id: Uuid,
+    ) -> Result<Vec<Ticket>, AppError> {
+        sqlx::query_as::<_, Ticket>(
+            "SELECT * FROM app.ticket WHERE store_id = $1 ORDER BY updated_at DESC LIMIT 100",
+        )
+        .bind(&store_id)
+        .fetch_all(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))
+    }
+
+    /// Escalate ticket automatically (per D-094: 7 days inactivity OR 50% of lifetime)
+    pub async fn check_and_escalate_tickets(db: &PgPool) -> Result<(), AppError> {
+        // Find tickets needing escalation
+        let tickets: Vec<(Uuid, Uuid)> = sqlx::query_as(
+            r#"
+            SELECT id, admin_id FROM app.ticket
+            WHERE state IN ('pending_support', 'pending_user')
+            AND (
+                EXTRACT(EPOCH FROM (now() - updated_at)) >= 7 * 86400
+                OR EXTRACT(EPOCH FROM (now() - updated_at)) >= lifetime_seconds / 2
+            )
+            AND escalated_at IS NULL
+            "#,
+        )
+        .fetch_all(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        let now = Utc::now();
+
+        for (ticket_id, _admin_id) in tickets {
+            sqlx::query(
+                "UPDATE app.ticket SET escalated_at = $1 WHERE id = $2",
+            )
+            .bind(&now)
+            .bind(&ticket_id)
+            .execute(db)
+            .await
+            .map_err(|e| AppError::database_error(&e))?;
+
+            // TODO: Create admin notification
+        }
+
+        Ok(())
+    }
+
+    /// Close ticket (auto-close after lifetime)
+    pub async fn close_ticket(
+        db: &PgPool,
+        ticket_id: Uuid,
+    ) -> Result<(), AppError> {
+        let now = Utc::now();
+        let reopen_deadline = now + chrono::Duration::seconds(Self::REOPEN_WINDOW_SECONDS as i64);
+
+        sqlx::query(
+            "UPDATE app.ticket SET state = 'closed', closed_at = $1, reopen_deadline = $2 WHERE id = $3",
+        )
+        .bind(&now)
+        .bind(&reopen_deadline)
+        .bind(&ticket_id)
+        .execute(db)
+        .await
+        .map_err(|e| AppError::database_error(&e))?;
+
+        Ok(())
+    }
+}

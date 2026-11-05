@@ -1,0 +1,35 @@
+use axum::Router;
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+
+mod auth;
+mod config;
+mod db;
+mod error;
+mod middleware;
+mod routes;
+mod state;
+
+use config::Config;
+use routes::router;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load config
+    let config = Config::from_env();
+    tracing_subscriber::fmt::init();
+
+    // Connect to database
+    let db_pool = db::connect(&config.database_url).await?;
+
+    // Build router
+    let app: Router = router();
+
+    // Bind and serve
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.port));
+    let listener = TcpListener::bind(&addr).await?;
+    
+    tracing::info!("listening on {}", addr);
+    axum::serve(listener, app).await?;
+    Ok(())
+}

@@ -1,0 +1,25 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /run/media/name/New Volume/projects/rabita/frontend/Cargo.toml
+workspace: /run/media/name/New Volume/projects/rabita/Cargo.toml
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing-subscriber
+warning: `rabita-frontend` (manifest) generated 2 warnings
+    Checking backend v0.1.0 (/run/media/name/New Volume/projects/rabita/backend)
+warning: unused import: `anyhow::anyhow`
+ --> backend/src/auth/password.rs:9:5
+  |
+9 | use anyhow::anyhow;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `state::AppState`
+ --> backend/src/auth/session.rs:5:43
+  |
+5 | use crate::{error::{AppError, AppResult}, state::AppState};
+  |                                           ^^^^^^^^^^^^^^^
+
+warning: `backend` (lib) generated 2 warnings (run `cargo fix --lib -p backend` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.46s
+warning: the following packages contain code that will be rejected by a future version of Rust: sqlx-postgres v0.7.4
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`

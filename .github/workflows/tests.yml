@@ -1,0 +1,88 @@
+# .github/workflows/test.yml
+
+name: Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  DATABASE_URL: postgres://postgres:password@localhost/rabita_test
+  RUST_BACKTRACE: 1
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: rabita_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      valkey:
+        image: valkey/valkey:8
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.75.0
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features postgres
+      
+      - name: Run migrations
+        run: sqlx migrate run --database-url ${{ env.DATABASE_URL }}
+      
+      - name: Run backend tests
+        run: cargo test --package rabita-backend --test '*'
+      
+      - name: Run backend lint
+        run: cargo clippy --package rabita-backend -- -D warnings
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.75.0
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Check frontend build
+        run: cargo build --package rabita-frontend --release
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: rustsec/audit-check-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

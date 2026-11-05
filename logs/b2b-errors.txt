@@ -1,0 +1,251 @@
+error[E0432]: unresolved import `crate::authorization`
+ --> backend/src/delegation/routes.rs:6:5
+  |
+6 |     authorization::AuthorizationCheck,
+  |     ^^^^^^^^^^^^^ could not find `authorization` in the crate root
+
+error[E0432]: unresolved import `crate::idempotency`
+ --> backend/src/orders/manager.rs:2:12
+  |
+2 | use crate::idempotency::IdempotencyStore;
+  |            ^^^^^^^^^^^ could not find `idempotency` in the crate root
+
+error[E0432]: unresolved import `crate::checkout`
+ --> backend/src/orders/manager.rs:3:12
+  |
+3 | use crate::checkout::CheckoutManager;
+  |            ^^^^^^^^ could not find `checkout` in the crate root
+
+error[E0432]: unresolved import `crate::checkout`
+  --> backend/src/orders/routes.rs:12:5
+   |
+12 |     checkout::CheckoutManager,
+   |     ^^^^^^^^ could not find `checkout` in the crate root
+
+error[E0433]: cannot find module or crate `unicode_normalization` in this scope
+  --> backend/src/stores/manager.rs:21:13
+   |
+21 |             unicode_normalization::NormalizationForm::NFC,
+   |             ^^^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `unicode_normalization`
+   |
+   = help: if you wanted to use a crate named `unicode_normalization`, use `cargo add unicode_normalization` to add it to your `Cargo.toml`
+--
+error[E0425]: cannot find type `CheckoutSummary` in this scope
+  --> backend/src/orders/manager.rs:27:27
+   |
+27 |         checkout_summary: CheckoutSummary,
+   |                           ^^^^^^^^^^^^^^^ not found in this scope
+
+warning: unused import: `anyhow::anyhow`
+--
+error[E0308]: mismatched types
+  --> backend/src/cart/manager.rs:95:33
+   |
+95 |             .set_ex(&key, json, Self::CART_TTL_SECONDS as usize)
+   |              ------             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u64`, found `usize`
+   |              |
+   |              arguments to this method are incorrect
+--
+error: this function depends on never type fallback being `()`
+  --> backend/src/cart/manager.rs:51:5
+   |
+51 | /     pub async fn add_to_cart(
+52 | |         cache: &mut redis::aio::ConnectionManager,
+53 | |         store_id: Uuid,
+54 | |         consumer_id: &str,
+--
+error[E0308]: mismatched types
+   --> backend/src/cart/manager.rs:128:33
+    |
+128 |             .set_ex(&key, json, Self::CART_TTL_SECONDS as usize)
+    |              ------             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u64`, found `usize`
+    |              |
+    |              arguments to this method are incorrect
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:106:5
+    |
+106 | /     pub async fn remove_from_cart(
+107 | |         cache: &mut redis::aio::ConnectionManager,
+108 | |         store_id: Uuid,
+109 | |         consumer_id: &str,
+--
+error[E0308]: mismatched types
+   --> backend/src/cart/manager.rs:170:33
+    |
+170 |             .set_ex(&key, json, Self::CART_TTL_SECONDS as usize)
+    |              ------             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u64`, found `usize`
+    |              |
+    |              arguments to this method are incorrect
+--
+error[E0308]: mismatched types
+   --> backend/src/cart/manager.rs:179:21
+    |
+179 |         let _: () = cache.del(&guest_key).await.ok();
+    |                --   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `()`, found `Option<_>`
+    |                |
+    |                expected due to this
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:139:5
+    |
+139 | /     pub async fn merge_guest_cart(
+140 | |         cache: &mut redis::aio::ConnectionManager,
+141 | |         store_id: Uuid,
+142 | |         guest_session_id: &str,
+--
+error: this function depends on never type fallback being `()`
+   --> backend/src/cart/manager.rs:185:5
+    |
+185 | /     pub async fn clear_cart(
+186 | |         cache: &mut redis::aio::ConnectionManager,
+187 | |         store_id: Uuid,
+188 | |         consumer_id: &str,
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/cart/routes.rs:27:9
+   |
+27 |         consumer_id,
+   |         ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0599]: no method named `get_connection` found for struct `ConnectionManager` in the current scope
+  --> backend/src/cart/routes.rs:38:10
+   |
+36 |       let mut cache = state
+   |  _____________________-
+37 | |         .cache
+38 | |         .get_connection()
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/cart/routes.rs:52:9
+   |
+52 |         consumer_id,
+   |         ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0599]: no method named `get_connection` found for struct `ConnectionManager` in the current scope
+  --> backend/src/cart/routes.rs:64:10
+   |
+62 |       let mut cache = state
+   |  _____________________-
+63 | |         .cache
+64 | |         .get_connection()
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/cart/routes.rs:78:9
+   |
+78 |         consumer_id,
+   |         ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0599]: no method named `get_connection` found for struct `ConnectionManager` in the current scope
+  --> backend/src/cart/routes.rs:90:10
+   |
+88 |       let mut cache = state
+   |  _____________________-
+89 | |         .cache
+90 | |         .get_connection()
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+   --> backend/src/cart/routes.rs:104:9
+    |
+104 |         consumer_id,
+    |         ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0599]: no method named `get_connection` found for struct `ConnectionManager` in the current scope
+   --> backend/src/cart/routes.rs:115:10
+    |
+113 |       let mut cache = state
+    |  _____________________-
+114 | |         .cache
+115 | |         .get_connection()
+--
+error[E0599]: no associated function or constant named `digest` found for struct `CoreWrapper<T>` in the current scope
+  --> backend/src/orders/manager.rs:34:42
+   |
+34 |         let payload_hash = sha2::Sha256::digest(payload_hash.as_bytes())
+   |                                          ^^^^^^ associated function or constant not found in `CoreWrapper<CtVariableCoreWrapper<Sha256VarCore, UInt<UInt<UInt<UInt<_, B0>, B0>, B0>, B0>, _>>`
+   |
+note: if you're trying to build a new `CoreWrapper<CtVariableCoreWrapper<Sha256VarCore, UInt<UInt<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B0>, B0>, B0>, B0>, sha2::OidSha256>>`, consider using `CoreWrapper::<T>::from_core` which returns `CoreWrapper<_>`
+--
+error[E0308]: mismatched types
+   --> backend/src/orders/manager.rs:155:54
+    |
+155 |         StockReserveManager::create_pending_reserves(&mut *tx, order_id, reserve_lines)
+    |         -------------------------------------------- ^^^^^^^^ expected `&Pool<Postgres>`, found `&mut PgConnection`
+    |         |
+    |         arguments to this function are incorrect
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/orders/routes.rs:31:9
+   |
+31 |         consumer_id,
+   |         ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0599]: no method named `get_connection` found for struct `ConnectionManager` in the current scope
+  --> backend/src/orders/routes.rs:41:33
+   |
+41 |     let mut cache = state.cache.get_connection().await.map_err(|e| {
+   |                                 ^^^^^^^^^^^^^^ method not found in `ConnectionManager`
+
+error[E0308]: mismatched types
+   --> backend/src/orders/stock_reserve.rs:133:13
+    |
+133 |         for (reserve_id, branch_id, product_id, quantity) in reserves {
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    -------- this is an iterator with items of type `(Uuid, Uuid, i64)`
+    |             |
+    |             expected a tuple with 3 elements, found one with 4 elements
+--
+error[E0433]: cannot find module or crate `unicode_normalization` in this scope
+  --> backend/src/stores/manager.rs:20:31
+   |
+20 |         let normalized_slug = unicode_normalization::normalize(
+   |                               ^^^^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `unicode_normalization`
+   |
+   = help: if you wanted to use a crate named `unicode_normalization`, use `cargo add unicode_normalization` to add it to your `Cargo.toml`
+--
+error[E0277]: the trait bound `stores::models::UpdateStoreRequest: serde::Serialize` is not satisfied
+   --> backend/src/stores/manager.rs:205:13
+    |
+205 |             serde_json::json!(&req),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             unsatisfied trait bound
+--
+error[E0277]: the trait bound `stores::models::UpdateStoreSettingsRequest: serde::Serialize` is not satisfied
+   --> backend/src/stores/manager.rs:279:13
+    |
+279 |             serde_json::json!(&req),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             unsatisfied trait bound
+--
+error[E0277]: the trait bound `stores::models::SuspendStoreRequest: serde::Serialize` is not satisfied
+   --> backend/src/stores/manager.rs:322:13
+    |
+322 |             serde_json::json!(&req),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             unsatisfied trait bound
+--
+error[E0277]: the trait bound `support::models::CreateTicketRequest: serde::Serialize` is not satisfied
+   --> backend/src/support/manager.rs:79:13
+    |
+ 79 |             serde_json::json!(&req),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             unsatisfied trait bound
+--
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/support/routes.rs:25:20
+   |
+25 |     SessionClaim { consumer_id, .. }: SessionClaim,
+   |                    ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+error[E0026]: struct `SessionClaim` does not have a field named `consumer_id`
+  --> backend/src/support/routes.rs:52:20
+   |
+52 |     SessionClaim { consumer_id, .. }: SessionClaim,
+   |                    ^^^^^^^^^^^ struct `SessionClaim` does not have this field
+
+warning: unused variable: `consumer_id`
+--
+error: could not compile `backend` (lib) due to 38 previous errors; 43 warnings emitted

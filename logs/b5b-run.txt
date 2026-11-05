@@ -1,0 +1,401 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /run/media/name/New Volume/projects/rabita/frontend/Cargo.toml
+workspace: /run/media/name/New Volume/projects/rabita/Cargo.toml
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing-subscriber
+warning: `rabita-frontend` (manifest) generated 2 warnings
+   Compiling backend v0.1.0 (/run/media/name/New Volume/projects/rabita/backend)
+warning: unused import: `anyhow::anyhow`
+ --> backend/src/auth/password.rs:9:5
+  |
+9 | use anyhow::anyhow;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `state::AppState`
+ --> backend/src/auth/session.rs:5:43
+  |
+5 | use crate::{error::{AppError, AppResult}, state::AppState};
+  |                                           ^^^^^^^^^^^^^^^
+
+warning: unused import: `AppError`
+ --> backend/src/authorization/capability.rs:5:20
+  |
+5 | use crate::error::{AppError, AppResult};
+  |                    ^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+ --> backend/src/authorization/capability.rs:8:5
+  |
+8 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+
+warning: unused import: `crate::state::AppState`
+ --> backend/src/cart/manager.rs:2:5
+  |
+2 | use crate::state::AppState;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `put`
+ --> backend/src/cart/routes.rs:5:34
+  |
+5 |     routing::{delete, get, post, put},
+  |                                  ^^^
+
+warning: unused import: `CartManager`
+ --> backend/src/checkout/manager.rs:2:25
+  |
+2 | use crate::cart::{Cart, CartManager};
+  |                         ^^^^^^^^^^^
+
+warning: unused imports: `get` and `http::StatusCode`
+ --> backend/src/checkout/routes.rs:4:5
+  |
+4 |     http::StatusCode,
+  |     ^^^^^^^^^^^^^^^^
+5 |     routing::{get, post},
+  |               ^^^
+
+warning: unused import: `SessionManager`
+ --> backend/src/consumer_auth/login.rs:7:42
+  |
+7 | use crate::auth::session::{SessionClaim, SessionManager};
+  |                                          ^^^^^^^^^^^^^^
+
+warning: unused import: `authorization::AuthorizationCheck`
+ --> backend/src/delegation/routes.rs:6:5
+  |
+6 |     authorization::AuthorizationCheck,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `AppResult`
+ --> backend/src/idempotency/middleware.rs:5:30
+  |
+5 | use crate::error::{AppError, AppResult};
+  |                              ^^^^^^^^^
+
+warning: unused import: `crate::audit::AuditLogger`
+ --> backend/src/media/manager.rs:2:5
+  |
+2 | use crate::audit::AuditLogger;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+ --> backend/src/media/manager.rs:6:5
+  |
+6 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `crate::idempotency::IdempotencyStore`
+ --> backend/src/orders/manager.rs:4:5
+  |
+4 | use crate::idempotency::IdempotencyStore;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::checkout::CheckoutManager`
+ --> backend/src/orders/manager.rs:5:5
+  |
+5 | use crate::checkout::CheckoutManager;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `CartManager`
+ --> backend/src/orders/manager.rs:6:25
+  |
+6 | use crate::cart::{Cart, CartManager};
+  |                         ^^^^^^^^^^^
+
+warning: unused import: `get`
+ --> backend/src/promotions/routes.rs:4:15
+  |
+4 |     routing::{get, post},
+  |               ^^^
+
+warning: variable does not need to be mutable
+  --> backend/src/checkout/manager.rs:23:13
+   |
+23 |         let mut warnings = vec![];
+   |             ----^^^^^^^^
+   |             |
+   |             help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> backend/src/checkout/manager.rs:213:13
+    |
+213 |         let mut discount_egp: i64 = 0;
+    |             ----^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: unused variable: `is_published`
+  --> backend/src/checkout/manager.rs:44:18
+   |
+44 |             let (is_published, base_price) = match product {
+   |                  ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_is_published`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `base_price`
+  --> backend/src/checkout/manager.rs:44:32
+   |
+44 |             let (is_published, base_price) = match product {
+   |                                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_base_price`
+
+warning: unused variable: `branch_id`
+   --> backend/src/checkout/manager.rs:192:45
+    |
+192 |         let shipping_cost_egp = if let Some(branch_id) = branch_pickup_id {
+    |                                             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_branch_id`
+
+warning: unused variable: `code`
+   --> backend/src/checkout/manager.rs:214:21
+    |
+214 |         if let Some(code) = coupon_code {
+    |                     ^^^^ help: if this is intentional, prefix it with an underscore: `_code`
+
+warning: unused variable: `consumer_id`
+   --> backend/src/consumer_auth/signup.rs:112:9
+    |
+112 |         consumer_id: Uuid,
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_consumer_id`
+
+warning: unused variable: `consumer_id`
+   --> backend/src/consumer_auth/reset.rs:106:36
+    |
+106 | async fn send_password_reset_email(consumer_id: Uuid, email: &str) -> AppResult<()> {
+    |                                    ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_consumer_id`
+
+warning: unused variable: `phone`
+   --> backend/src/consumer_auth/signup.rs:171:34
+    |
+171 | async fn check_phone_on_whatsapp(phone: &str) -> AppResult<bool> {
+    |                                  ^^^^^ help: if this is intentional, prefix it with an underscore: `_phone`
+
+warning: unused variable: `store_id`
+  --> backend/src/consumer_auth/signup.rs:98:9
+   |
+98 |         store_id: Uuid,
+   |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_store_id`
+
+warning: unused variable: `consumer_id`
+  --> backend/src/consumer_auth/signup.rs:99:9
+   |
+99 |         consumer_id: Uuid,
+   |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_consumer_id`
+
+warning: unused variable: `token`
+   --> backend/src/consumer_auth/signup.rs:125:9
+    |
+125 |         token: &str,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_token`
+
+warning: unused variable: `code`
+   --> backend/src/consumer_auth/signup.rs:149:9
+    |
+149 |         code: &str,
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_code`
+
+warning: unused variable: `state`
+  --> backend/src/consumer_auth/routes.rs:60:11
+   |
+60 |     State(state): State<AppState>,
+   |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `body`
+  --> backend/src/consumer_auth/routes.rs:61:16
+   |
+61 |     axum::Json(body): axum::Json<serde_json::Value>,
+   |                ^^^^ help: if this is intentional, prefix it with an underscore: `_body`
+
+warning: unused variable: `state`
+  --> backend/src/delegation/routes.rs:29:11
+   |
+29 |     State(state): State<AppState>,
+   |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `claim`
+  --> backend/src/delegation/routes.rs:30:5
+   |
+30 |     claim: SessionClaim,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_claim`
+
+warning: unused variable: `input`
+  --> backend/src/delegation/routes.rs:31:10
+   |
+31 |     Json(input): Json<ApprovalRequestInput>,
+   |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_input`
+
+warning: unused variable: `state`
+  --> backend/src/delegation/routes.rs:44:11
+   |
+44 |     State(state): State<AppState>,
+   |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `claim`
+  --> backend/src/delegation/routes.rs:45:5
+   |
+45 |     claim: SessionClaim,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_claim`
+
+warning: unused variable: `request_id`
+  --> backend/src/delegation/routes.rs:46:10
+   |
+46 |     Path(request_id): Path<Uuid>,
+   |          ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_request_id`
+
+warning: unused variable: `input`
+  --> backend/src/delegation/routes.rs:47:10
+   |
+47 |     Json(input): Json<ApprovalDecision>,
+   |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_input`
+
+warning: unused variable: `state`
+  --> backend/src/delegation/routes.rs:61:11
+   |
+61 |     State(state): State<AppState>,
+   |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `claim`
+  --> backend/src/delegation/routes.rs:62:5
+   |
+62 |     claim: SessionClaim,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_claim`
+
+warning: unused variable: `request_id`
+  --> backend/src/delegation/routes.rs:63:10
+   |
+63 |     Path(request_id): Path<Uuid>,
+   |          ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_request_id`
+
+warning: unused variable: `input`
+  --> backend/src/delegation/routes.rs:64:10
+   |
+64 |     Json(input): Json<ApprovalDecision>,
+   |          ^^^^^ help: if this is intentional, prefix it with an underscore: `_input`
+
+warning: unused variable: `state`
+  --> backend/src/delegation/routes.rs:77:11
+   |
+77 |     State(state): State<AppState>,
+   |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `claim`
+  --> backend/src/delegation/routes.rs:78:5
+   |
+78 |     claim: SessionClaim,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_claim`
+
+warning: unused variable: `request`
+  --> backend/src/delegation/routes.rs:79:10
+   |
+79 |     Json(request): Json<ExecutionRequest>,
+   |          ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_request`
+
+warning: unused variable: `path`
+  --> backend/src/idempotency/store.rs:97:47
+   |
+97 |     pub fn requires_idempotency(method: &str, path: &str) -> bool {
+   |                                               ^^^^ help: if this is intentional, prefix it with an underscore: `_path`
+
+warning: unused variable: `app_id`
+  --> backend/src/onboarding/application.rs:98:55
+   |
+98 |     pub async fn send_verification_email(email: &str, app_id: Uuid) -> AppResult<()> {
+   |                                                       ^^^^^^ help: if this is intentional, prefix it with an underscore: `_app_id`
+
+warning: unused variable: `token`
+   --> backend/src/onboarding/application.rs:106:58
+    |
+106 |     pub async fn verify_email(db: &PgPool, app_id: Uuid, token: &str) -> AppResult<()> {
+    |                                                          ^^^^^ help: if this is intentional, prefix it with an underscore: `_token`
+
+warning: unused variable: `now`
+  --> backend/src/orders/stock_reserve.rs:71:13
+   |
+71 |         let now = Utc::now();
+   |             ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `variant_id`
+  --> backend/src/orders/stock_reserve.rs:73:38
+   |
+73 |         for (reserve_id, product_id, variant_id, branch_id, quantity) in reserves {
+   |                                      ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_variant_id`
+
+warning: unused variable: `account_id`
+   --> backend/src/orders/routes.rs:102:20
+    |
+102 |     SessionClaim { account_id, .. }: SessionClaim,
+    |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+   --> backend/src/orders/routes.rs:112:20
+    |
+112 |     SessionClaim { account_id, .. }: SessionClaim,
+    |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+   --> backend/src/orders/routes.rs:122:20
+    |
+122 |     SessionClaim { account_id, .. }: SessionClaim,
+    |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+   --> backend/src/orders/routes.rs:132:20
+    |
+132 |     SessionClaim { account_id, .. }: SessionClaim,
+    |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+  --> backend/src/promotions/routes.rs:24:20
+   |
+24 |     SessionClaim { account_id, .. }: SessionClaim,
+   |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+  --> backend/src/promotions/routes.rs:35:20
+   |
+35 |     SessionClaim { account_id, .. }: SessionClaim,
+   |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `account_id`
+  --> backend/src/promotions/routes.rs:46:20
+   |
+46 |     SessionClaim { account_id, .. }: SessionClaim,
+   |                    ^^^^^^^^^^ help: try ignoring the field: `account_id: _`
+
+warning: unused variable: `store`
+   --> backend/src/stores/manager.rs:172:13
+    |
+172 |         let store = Self::get_store(pool, account_id, store_id).await?;
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_store`
+
+warning: associated constant `NEW_ACCOUNT_DAILY_LIMIT` is never used
+  --> backend/src/media/manager.rs:15:11
+   |
+12 | impl MediaManager {
+   | ----------------- associated constant in this implementation
+...
+15 |     const NEW_ACCOUNT_DAILY_LIMIT: i64 = 500_000_000; // 500 MB
+   |           ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated constant `ATTACHMENT_TTL_SECONDS` is never used
+  --> backend/src/support/manager.rs:14:11
+   |
+11 | impl SupportManager {
+   | ------------------- associated constant in this implementation
+...
+14 |     const ATTACHMENT_TTL_SECONDS: i32 = 3 * 24 * 60 * 60;    // 3 days per D-094
+   |           ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `backend` (lib) generated 61 warnings (run `cargo fix --lib -p backend` to apply 59 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.31s
+warning: the following packages contain code that will be rejected by a future version of Rust: sqlx-postgres v0.7.4
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+     Running `target/debug/backend`
+[2m2026-11-05T11:23:23.735838Z[0m [32m INFO[0m [2mbackend[0m[2m:[0m config: bind=0.0.0.0:3000 database=postgresql://***@127.0.0.1:5432/rabita valkey=redis://127.0.0.1:6379
+[2m2026-11-05T11:23:23.781543Z[0m [32m INFO[0m [2msqlx::postgres::notice[0m[2m:[0m relation "_sqlx_migrations" already exists, skipping
+[2m2026-11-05T11:23:23.785462Z[0m [32m INFO[0m [2mbackend[0m[2m:[0m listening on 0.0.0.0:3000

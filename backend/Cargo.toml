@@ -1,4 +1,3 @@
-// backend/Cargo.toml
 [package]
 name = "backend"
 version.workspace = true
@@ -21,19 +20,18 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "json", "macros"] }
-
-# Cache/session
-redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "json", "macros", "migrate"] }
 
 # Authentication
 argon2 = "0.5"
-webauthn-rs = { version = "0.4", features = ["serialize"] }
-totp-rs = "0.9"
+webauthn-rs = "0.4"
+totp-rs = "6"
 jsonwebtoken = "9.3"
 
 # Crypto
 sha1 = "0.10"
+sha2 = "0.10"
+rand = "0.8"
 
 # UUID & Time
 uuid = { version = "1.10", features = ["v4", "serde"] }
@@ -41,7 +39,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # Error handling
 thiserror = "1.0"
-anyhow = "1.0"
+anyhow = "1"
 
 # Configuration
 config = "0.14"
@@ -50,6 +48,9 @@ dotenvy = "0.15"
 # Logging & Tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
 
 # AWS SDK
 aws-sdk-s3 = "1.31"
@@ -60,3 +61,11 @@ aws-config = "1.1"
 # Utility
 bytes = "1.6"
 regex = "1.10"
+
+
+hex = "0.4"
+redis = { version = "0.24", features = ["aio", "tokio-comp", "connection-manager"] }
+unicode-normalization = "0.1"
+# PDF generation (when ready)
+# printpdf = "0.8"
+# tinytemplate = "1.2"

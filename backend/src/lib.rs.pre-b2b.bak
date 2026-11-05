@@ -1,0 +1,20 @@
+// Modules declared so far. Each one is added after its compile errors are fixed.
+// Not yet declared: branches, catalog, checkout, shipping, outbox, feedback, jobs,
+// analytics, refunds, promotions/puck_data, invoices, notifications, s3, csrf, idempotency, guardduty, onboarding/application.
+pub mod audit;
+pub mod auth;
+pub mod cart;
+pub mod config;
+pub mod consumer_auth;
+pub mod db;
+pub mod delegation;
+pub mod error;
+pub mod media;
+pub mod middleware;
+pub mod onboarding;
+pub mod orders;
+pub mod promotions;
+pub mod routes;
+pub mod state;
+pub mod stores;
+pub mod support;

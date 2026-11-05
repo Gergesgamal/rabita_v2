@@ -1,0 +1,90 @@
+## backend check (expect 0)
+5
+## frontend check
+0
+## backend modules declared in lib.rs
+pub mod audit;
+pub mod auth;
+pub mod authorization;
+pub mod cart;
+pub mod checkout;
+pub mod config;
+pub mod consumer_auth;
+pub mod db;
+pub mod delegation;
+pub mod error;
+pub mod idempotency;
+pub mod media;
+pub mod middleware;
+pub mod onboarding;
+pub mod orders;
+pub mod promotions;
+pub mod routes;
+pub mod shipping;
+pub mod state;
+pub mod stores;
+pub mod support;
+## source folders NOT declared in lib.rs
+analytics
+branches
+catalog
+consumer
+csrf
+feedback
+guardduty
+invoices
+jobs
+notifications
+outbox
+puck_data
+refunds
+s3
+## route declarations (expect 33 lines incl. health/ready; fallback expect 1)
+89
+1
+## StoreManager definitions (expect 2 = duplicate)
+backend/src/stores/manager.rs:10:pub struct StoreManager;
+backend/src/stores/service.rs:10:pub struct StoreManager;
+## support_routes definitions (expect 2 = duplicate)
+backend/src/jobs/mod.rs
+backend/src/support/routes.rs
+backend/src/support/routes.rs.pre-ticketfix.bak
+## auth placeholders (expect 501 lines)
+14:    StatusCode::NOT_IMPLEMENTED
+## ready (expect fixed string)
+38:    "ready"
+## audit INSERT columns (blueprint has event_type, actor_id, actor_type, target_type, previous_hash)
+23:            "INSERT INTO app.audit_log (actor_account_id, action, target_id, payload, reason)
+24-             VALUES ($1, $2, $3, $4, $5)",
+25-        )
+26-        .bind(actor_account_id)
+## audit call sites
+17
+## idempotency used outside its module (expect 0 for B11 wiring)
+backend/src/orders/manager.rs
+## csrf used outside its module (expect 0)
+backend/src/lib.rs
+backend/src/lib.rs.pre-b2b.bak
+## security layers (body limit, cors, headers, shutdown, tower_http) (expect 0)
+0
+## ticket reply handler (check for SessionClaim and ownership)
+64:async fn reply_ticket(
+65-    State(state): State<AppState>,
+66-    SessionClaim { account_id, .. }: SessionClaim,
+67-    Path(ticket_id): Path<Uuid>,
+68-    Json(req): Json<ReplyToTicketRequest>,
+69-) -> Result<(StatusCode, Json<TicketReply>), AppError> {
+## migrations (expect 27 up files, no 0001)
+27
+no 0001 file
+## server
+ok## backend dependencies
+19:serde = { version = "1.0", features = ["derive"] }
+23:sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "json", "macros", "migrate"] }
+26:argon2 = "0.5"
+32:sha1 = "0.10"
+33:sha2 = "0.10"
+50:tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+53:reqwest = { version = "0.11", features = ["json"] }
+67:redis = { version = "0.24", features = ["aio", "tokio-comp", "connection-manager"] }
+68:unicode-normalization = "0.1"

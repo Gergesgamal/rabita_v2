@@ -1,0 +1,47 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /run/media/name/New Volume/projects/rabita/frontend/Cargo.toml
+workspace: /run/media/name/New Volume/projects/rabita/Cargo.toml
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing
+warning: frontend/Cargo.toml: unused manifest key: profile.release.tracing-subscriber
+warning: `rabita-frontend` (manifest) generated 2 warnings
+ Downloading crates ...
+  Downloaded socket2 v0.4.10
+  Downloaded redis v0.24.1
+    Checking hyper-util v0.1.21
+    Checking tower v0.5.3
+    Checking hyper-tls v0.5.0
+    Checking axum-core v0.4.5
+    Checking socket2 v0.4.10
+    Checking reqwest v0.11.27
+    Checking redis v0.24.1
+    Checking hyper-rustls v0.27.10
+    Checking aws-smithy-http-client v1.5.2
+    Checking axum v0.7.9
+    Checking aws-smithy-runtime v1.16.2
+    Checking aws-runtime v1.10.2
+    Checking aws-sdk-ssooidc v1.120.0
+    Checking aws-sdk-sso v1.118.0
+    Checking aws-sdk-sts v1.123.0
+    Checking aws-sdk-sesv2 v1.144.0
+    Checking aws-sdk-s3 v1.156.0
+    Checking aws-sdk-dynamodb v1.135.0
+    Checking aws-config v1.13.0
+    Checking backend v0.1.0 (/run/media/name/New Volume/projects/rabita/backend)
+warning: unused import: `anyhow::anyhow`
+ --> backend/src/auth/password.rs:9:5
+  |
+9 | use anyhow::anyhow;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `state::AppState`
+ --> backend/src/auth/session.rs:5:43
+  |
+5 | use crate::{error::{AppError, AppResult}, state::AppState};
+  |                                           ^^^^^^^^^^^^^^^
+
+warning: `backend` (lib) generated 2 warnings (run `cargo fix --lib -p backend` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.47s
+warning: the following packages contain code that will be rejected by a future version of Rust: sqlx-postgres v0.7.4
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`

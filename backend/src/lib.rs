@@ -1,18 +1,24 @@
-// backend/src/lib.rs
-
-//! Rabita commerce operating platform backend.
-//!
-//! This library exports the core application modules, state, and router setup.
-
+// Modules declared so far. Each one is added after its compile errors are fixed.
+// Not yet declared: branches, catalog, outbox, feedback, jobs, analytics, refunds, promotions/puck_data,
+// invoices, notifications, s3, csrf, guardduty, onboarding/application.
+pub mod audit;
 pub mod auth;
 pub mod authorization;
+pub mod cart;
+pub mod checkout;
 pub mod config;
+pub mod consumer_auth;
 pub mod db;
 pub mod delegation;
 pub mod error;
+pub mod idempotency;
+pub mod media;
 pub mod middleware;
+pub mod onboarding;
+pub mod orders;
+pub mod promotions;
 pub mod routes;
+pub mod shipping;
 pub mod state;
-
-pub use error::{AppError, AppResult};
-pub use state::AppState;
+pub mod stores;
+pub mod support;

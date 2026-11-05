@@ -1,6 +1,5 @@
-// Cargo.toml
 [workspace]
-members = ["backend"]
+members = ["backend", "frontend"]
 resolver = "2"
 
 [workspace.package]

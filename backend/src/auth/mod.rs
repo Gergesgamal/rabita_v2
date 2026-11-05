@@ -1,9 +1,8 @@
-// backend/src/auth/mod.rs
+// Submodules not yet declared: admin_login, attempt_token, errors, merchant_login, models, totp, webauthn.
+// They are added one at a time once each one compiles (webauthn.rs and totp.rs need API fixes first).
+pub mod password;
+pub mod routes;
+pub mod session;
 
-//! Authentication module (Wave 3 implementation).
-//! Placeholder stubs for future waves.
-
-pub mod models;
-
-// Detailed auth submodules (password, attempt_token, webauthn, etc.)
-// will be added in Wave 3a.
+pub use password::PasswordManager;
+pub use session::{SessionClaim, SessionManager};

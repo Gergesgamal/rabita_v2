@@ -1,0 +1,70 @@
+[package]
+name = "backend"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.40", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors", "compression-gzip"] }
+
+# HTTP framework
+axum = "0.7"
+http = "1.1"
+hyper = "1.4"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono", "json", "macros"] }
+
+# Authentication
+argon2 = "0.5"
+webauthn-rs = "0.4"
+totp-rs = "6"
+jsonwebtoken = "9.3"
+
+# Crypto
+sha1 = "0.10"
+sha2 = "0.10"
+rand = "0.8"
+
+# UUID & Time
+uuid = { version = "1.10", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Configuration
+config = "0.14"
+dotenvy = "0.15"
+
+# Logging & Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# AWS SDK
+aws-sdk-s3 = "1.31"
+aws-sdk-sesv2 = "1.31"
+aws-sdk-dynamodb = "1.31"
+aws-config = "1.1"
+
+# Utility
+bytes = "1.6"
+regex = "1.10"
+
+
+hex = "0.4"
+redis = { version = "0.25", features = ["aio", "tokio-comp", "connection-manager"] }
+# PDF generation (when ready)
+# printpdf = "0.8"
+# tinytemplate = "1.2"

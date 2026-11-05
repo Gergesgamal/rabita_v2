@@ -1,0 +1,33 @@
+use std::net::SocketAddr;
+
+use backend::{config::Config, routes, state::AppState};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt::init();
+
+    let config = Config::from_env()?;
+
+    let db = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&config.database_url)
+        .await?;
+    sqlx::migrate!("./migrations").run(&db).await?;
+
+    let cache = redis::Client::open(config.valkey_url.as_str())?
+        .get_connection_manager()
+        .await?;
+
+    let app = routes::router().with_state(AppState { db, cache });
+
+    let listener = tokio::net::TcpListener::bind(&config.bind_addr).await?;
+    tracing::info!("listening on {}", config.bind_addr);
+
+    // ConnectInfo<SocketAddr> is required by handlers that record client IPs.
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
+    Ok(())
+}

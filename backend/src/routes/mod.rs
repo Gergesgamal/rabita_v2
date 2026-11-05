@@ -1,29 +1,39 @@
-// backend/src/routes/mod.rs
+use axum::{routing::get, Router};
 
-//! HTTP route definitions and router assembly.
-
-pub mod health;
-
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Router,
+use crate::{
+    auth, cart, consumer_auth, delegation, error::AppError, media, onboarding, orders, promotions,
+    state::AppState, stores, support,
 };
-use crate::state::AppState;
 
-/// Build the root router with all route modules.
+/// Top-level router: all 31 business routes plus health and readiness.
+/// Each module owns its paths. A duplicate path+method panics at startup.
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/health", get(health::health))
-        .route("/ready", get(health::ready))
-        .fallback(not_found)
+        .route("/health", get(health))
+        .route("/ready", get(ready))
+        .merge(auth::routes::router())                 // 2
+        .merge(cart::cart_routes())                    // 3
+        .merge(consumer_auth::routes::router())        // 3
+        .merge(delegation::routes::router())           // 4
+        .merge(media::media_routes())                  // 3
+        .merge(onboarding::routes::router())           // 2
+        .merge(orders::order_routes())                 // 4
+        .merge(promotions::promotion_routes())         // 2
+        .merge(stores::store_routes())                 // 5
+        .merge(support::support_routes())              // 3
+        .fallback(route_not_found)
 }
 
-/// 404 handler for unmatched routes.
-async fn not_found() -> impl IntoResponse {
-    (
-        StatusCode::NOT_FOUND,
-        "Route not found. Most features are not yet implemented (Wave 1 foundation).",
-    )
+/// Unmatched paths return the same problem document as every other error.
+async fn route_not_found() -> AppError {
+    AppError::NotFound("No route matches this path.".to_string())
+}
+
+pub async fn health() -> &'static str {
+    "ok"
+}
+
+// Still a placeholder: D-126 requires real Postgres and Valkey checks.
+pub async fn ready() -> &'static str {
+    "ready"
 }

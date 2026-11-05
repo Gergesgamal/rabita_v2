@@ -1,0 +1,75 @@
+// backend/src/onboarding/routes.rs
+
+//! Onboarding routes per D-039 (application submission, verification).
+
+use crate::{
+    error::AppResult,
+    onboarding::{application::ApplicationManager, models::{MerchantApplicationInput, MerchantApplicationResponse}},
+    state::AppState,
+};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    Json,
+};
+use serde::Deserialize;
+use uuid::Uuid;
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyEmailBody {
+    pub token: String,
+}
+
+pub fn router() -> axum::Router<AppState> {
+    axum::Router::new()
+        .route("/applications/submit", axum::routing::post(submit_application))
+        .route("/applications/:id/verify-email", axum::routing::post(verify_email))
+}
+
+/// POST /api/v1/onboarding/applications/submit
+/// Submit merchant application per D-039.
+async fn submit_application(
+    State(state): State<AppState>,
+    axum::extract::ConnectInfo(addr): axum::extract::ConnectInfo<std::net::SocketAddr>,
+    Json(input): Json<MerchantApplicationInput>,
+) -> AppResult<(StatusCode, Json<MerchantApplicationResponse>)> {
+    let ip = addr.ip().to_string();
+
+    // TODO: Verify CAPTCHA/proof-of-work (D-038). Must not ship with captcha_verified hard-coded true.
+
+    let app_id = ApplicationManager::submit_application(
+        &state.db,
+        &input.business_name,
+        &input.contact_name,
+        &input.contact_phone,
+        &input.email,
+        input.product_category.as_deref(),
+        input.notes.as_deref(),
+        Some(&ip),
+        None,
+        true,
+    )
+    .await?;
+
+    ApplicationManager::send_verification_email(&input.email, app_id).await?;
+
+    Ok((
+        StatusCode::CREATED,
+        Json(MerchantApplicationResponse {
+            id: app_id,
+            state: "submitted".to_string(),
+            created_at: chrono::Utc::now(),
+        }),
+    ))
+}
+
+/// POST /api/v1/onboarding/applications/:id/verify-email
+/// Verify email and enter approval queue per D-039.
+async fn verify_email(
+    State(state): State<AppState>,
+    Path(app_id): Path<Uuid>,
+    Json(body): Json<VerifyEmailBody>,
+) -> AppResult<StatusCode> {
+    ApplicationManager::verify_email(&state.db, app_id, &body.token).await?;
+    Ok(StatusCode::OK)
+}

@@ -1,125 +1,196 @@
-// backend/src/error.rs
-
-//! Application error type and RFC 9457 Problem Details serialization.
+//! Shared application error type. Every error response is RFC 9457 Problem Details
+//! (application/problem+json). Server-side causes are logged and never sent to clients.
 
 use axum::{
-    http::StatusCode,
+    http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
-    Json,
 };
-use serde::{Deserialize, Serialize};
-use std::fmt;
-use thiserror::Error;
+use serde::Serialize;
+
+const GENERIC_SERVER_DETAIL: &str = "An internal error occurred.";
 
 pub type AppResult<T> = Result<T, AppError>;
 
-/// RFC 9457 Problem Details object.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProblemDetails {
-    #[serde(rename = "type")]
-    pub type_url: String,
-    pub title: String,
-    pub status: u16,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub detail: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instance: Option<String>,
+/// Machine-readable categories for `AppError::new`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ErrorCode {
+    NotFound,
+    InvalidInput,
+    InvalidState,
+    Conflict,
+    RateLimited,
+    QuotaExceeded,
+    CacheError,
+    InternalError,
 }
 
-/// Application error type.
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum AppError {
-    #[error("Invalid request: {0}")]
     BadRequest(String),
-
-    #[error("Unauthorized")]
     Unauthorized,
-
-    #[error("Forbidden: {0}")]
-    Forbidden(String),
-
-    #[error("Not found: {0}")]
-    NotFound(String),
-
-    #[error("Conflict: {0}")]
-    Conflict(String),
-
-    #[error("Internal server error")]
-    InternalError(#[from] anyhow::Error),
-
-    #[error("Database error")]
-    DatabaseError(#[from] sqlx::Error),
-
-    #[error("Authentication failed")]
     AuthenticationFailed,
-
-    #[error("Invalid token")]
     InvalidToken,
-
-    #[error("Session expired")]
     SessionExpired,
+    Forbidden(String),
+    NotFound(String),
+    Conflict(String),
+    Database(String),
+    InternalError(String),
+    /// A dependency is down. The message must be safe to show to clients.
+    DependencyUnavailable(String),
+    Coded { code: ErrorCode, message: String },
+}
+
+/// What a client may see for one error.
+struct PublicError {
+    status: StatusCode,
+    code: &'static str,
+    detail: String,
 }
 
 impl AppError {
-    /// Get the HTTP status code for this error.
-    fn status_code(&self) -> StatusCode {
-        match self {
-            Self::BadRequest(_) => StatusCode::BAD_REQUEST,
-            Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::Forbidden(_) => StatusCode::FORBIDDEN,
-            Self::NotFound(_) => StatusCode::NOT_FOUND,
-            Self::Conflict(_) => StatusCode::CONFLICT,
-            Self::AuthenticationFailed => StatusCode::UNAUTHORIZED,
-            Self::InvalidToken => StatusCode::UNAUTHORIZED,
-            Self::SessionExpired => StatusCode::UNAUTHORIZED,
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
-        }
+    pub fn new(code: ErrorCode, message: impl Into<String>) -> Self {
+        AppError::Coded { code, message: message.into() }
     }
 
-    /// Create a Problem Details response.
-    fn problem_details(&self) -> ProblemDetails {
-        let status = self.status_code();
-        let (title, detail) = match self {
-            Self::BadRequest(msg) => ("Bad Request", Some(msg.clone())),
-            Self::Unauthorized => ("Unauthorized", None),
-            Self::Forbidden(msg) => ("Forbidden", Some(msg.clone())),
-            Self::NotFound(msg) => ("Not Found", Some(msg.clone())),
-            Self::Conflict(msg) => ("Conflict", Some(msg.clone())),
-            Self::AuthenticationFailed => ("Authentication Failed", None),
-            Self::InvalidToken => ("Invalid Token", None),
-            Self::SessionExpired => ("Session Expired", None),
-            _ => ("Internal Server Error", None),
+    /// Logs the driver error server-side. The client only ever sees a generic message.
+    pub fn database_error(err: &sqlx::Error) -> Self {
+        tracing::error!(error = %err, "database error");
+        AppError::Database(err.to_string())
+    }
+
+    fn public(&self) -> PublicError {
+        let (status, code, detail) = match self {
+            AppError::BadRequest(m) => (StatusCode::BAD_REQUEST, "invalid_input", m.clone()),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", "Authentication required.".into()),
+            AppError::AuthenticationFailed => (StatusCode::UNAUTHORIZED, "authentication_failed", "Invalid credentials.".into()),
+            AppError::InvalidToken => (StatusCode::UNAUTHORIZED, "invalid_token", "The token is invalid or expired.".into()),
+            AppError::SessionExpired => (StatusCode::UNAUTHORIZED, "session_expired", "The session has expired.".into()),
+            AppError::Forbidden(m) => (StatusCode::FORBIDDEN, "forbidden", m.clone()),
+            AppError::NotFound(m) => (StatusCode::NOT_FOUND, "not_found", m.clone()),
+            AppError::Conflict(m) => (StatusCode::CONFLICT, "conflict", m.clone()),
+            AppError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "database_error", GENERIC_SERVER_DETAIL.into()),
+            AppError::InternalError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error", GENERIC_SERVER_DETAIL.into()),
+            AppError::DependencyUnavailable(m) => (StatusCode::SERVICE_UNAVAILABLE, "dependency_unavailable", m.clone()),
+            AppError::Coded { code, message } => match code {
+                ErrorCode::NotFound => (StatusCode::NOT_FOUND, "not_found", message.clone()),
+                ErrorCode::InvalidInput => (StatusCode::BAD_REQUEST, "invalid_input", message.clone()),
+                ErrorCode::InvalidState => (StatusCode::CONFLICT, "invalid_state", message.clone()),
+                ErrorCode::Conflict => (StatusCode::CONFLICT, "conflict", message.clone()),
+                ErrorCode::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate_limited", message.clone()),
+                ErrorCode::QuotaExceeded => (StatusCode::FORBIDDEN, "quota_exceeded", message.clone()),
+                ErrorCode::CacheError => (StatusCode::SERVICE_UNAVAILABLE, "cache_unavailable", GENERIC_SERVER_DETAIL.into()),
+                ErrorCode::InternalError => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error", GENERIC_SERVER_DETAIL.into()),
+            },
         };
-
-        ProblemDetails {
-            type_url: format!("https://rabita.shop/errors/{}", status.as_u16()),
-            title: title.to_string(),
-            status: status.as_u16(),
-            detail,
-            instance: None,
-        }
+        PublicError { status, code, detail }
     }
+}
+
+impl From<sqlx::Error> for AppError {
+    fn from(err: sqlx::Error) -> Self {
+        AppError::database_error(&err)
+    }
+}
+
+impl From<redis::RedisError> for AppError {
+    fn from(err: redis::RedisError) -> Self {
+        tracing::error!(error = %err, "cache error");
+        AppError::new(ErrorCode::CacheError, "cache unavailable")
+    }
+}
+
+impl From<serde_json::Error> for AppError {
+    fn from(err: serde_json::Error) -> Self {
+        AppError::InternalError(err.to_string())
+    }
+}
+
+/// RFC 9457 problem document. `type` is "about:blank" (RFC 9457 section 4.2.1: no extra
+/// semantics beyond the status). `code` is an extension member for machine handling.
+#[derive(Serialize)]
+struct Problem<'a> {
+    #[serde(rename = "type")]
+    kind: &'static str,
+    title: &'a str,
+    status: u16,
+    detail: &'a str,
+    code: &'static str,
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let status = self.status_code();
-        let problem = self.problem_details();
+        let public = self.public();
+        if public.status.is_server_error() {
+            tracing::error!(error = ?self, status = %public.status, "request failed");
+        }
 
-        tracing::error!(?self, "Request error");
+        let title = public.status.canonical_reason().unwrap_or("Error");
+        let body = Problem {
+            kind: "about:blank",
+            title,
+            status: public.status.as_u16(),
+            detail: &public.detail,
+            code: public.code,
+        };
+        let bytes = serde_json::to_vec(&body)
+            .unwrap_or_else(|_| br#"{"title":"Internal Server Error","status":500}"#.to_vec());
 
-        (status, Json(problem)).into_response()
+        let mut response = (
+            public.status,
+            [(header::CONTENT_TYPE, "application/problem+json")],
+            bytes,
+        )
+            .into_response();
+
+        // RFC 7235: a 401 must carry a challenge.
+        if public.status == StatusCode::UNAUTHORIZED {
+            response
+                .headers_mut()
+                .insert(header::WWW_AUTHENTICATE, HeaderValue::from_static("Bearer"));
+        }
+        response
     }
 }
 
-impl From<String> for AppError {
-    fn from(msg: String) -> Self {
-        Self::BadRequest(msg)
-    }
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::to_bytes;
 
-impl From<&str> for AppError {
-    fn from(msg: &str) -> Self {
-        Self::BadRequest(msg.to_string())
+    async fn render(err: AppError) -> Response {
+        err.into_response()
+    }
+
+    async fn body_text(resp: Response) -> String {
+        let bytes = to_bytes(resp.into_body(), 64 * 1024).await.unwrap();
+        String::from_utf8(bytes.to_vec()).unwrap()
+    }
+
+    #[tokio::test]
+    async fn client_error_is_problem_json() {
+        let resp = render(AppError::NotFound("Ticket not found".into())).await;
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+        assert_eq!(resp.headers()[header::CONTENT_TYPE], "application/problem+json");
+        let body = body_text(resp).await;
+        assert!(body.contains(r#""status":404"#));
+        assert!(body.contains(r#""code":"not_found""#));
+        assert!(body.contains("Ticket not found"));
+    }
+
+    #[tokio::test]
+    async fn server_error_hides_internal_detail() {
+        let resp = render(AppError::Database("relation secret_table does not exist".into())).await;
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        let body = body_text(resp).await;
+        assert!(!body.contains("secret_table"));
+        assert!(body.contains(GENERIC_SERVER_DETAIL));
+    }
+
+    #[tokio::test]
+    async fn unauthorized_carries_bearer_challenge() {
+        let resp = render(AppError::Unauthorized).await;
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        assert_eq!(resp.headers()[header::WWW_AUTHENTICATE], "Bearer");
     }
 }
